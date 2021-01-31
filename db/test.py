@@ -33,6 +33,7 @@ def execute(query, dsn):
                 cur.execute(query)
     except Exception as e:
         print(e)
+        print(e)
 
 
 def select(query, dsn):
