@@ -1,2 +1,2 @@
-# portfolio-backtesting
-Analysis of the portfolio based on historical data
+# backtest_db
+Database for portfolio backtest
