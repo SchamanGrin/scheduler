@@ -17,7 +17,7 @@ class backconfig(object):
 
         self.db_conf_data = {
             'DEFAULT': {'host': 'localhost', 'dbname': 'demo', 'user': 'db_user'},
-            'data_type': {'dbconfig': {'host': str, 'dbname':str, 'user': str, 'password':str}}
+            'data_type': {'dbconfig': {'host': str, 'dbname': str, 'user': str, 'password':str}}
         }
 
         if not self.db_conf_path.exists():

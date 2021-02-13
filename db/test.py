@@ -22,7 +22,7 @@ query_3 = sql.SQL('ALTER TABLE IF EXISTS {table_name}'
 select_pk = sql.SQL('SELECT a.attname, format_type(a.atttypid, a.atttypmod) AS data_type '
                     'FROM   pg_index i '
                     'JOIN   pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey) '
-                    'WHERE  i.indrelid = {table_name}::regclass AND i.indisprimary)').format(table_name=sql.Identifier(name))
+                    'WHERE  i.indrelid = {table_name}::regclass AND i.indisprimary').format(table_name=sql.Identifier(name))
 
 
 
@@ -35,17 +35,27 @@ def execute(query, dsn):
         print(e)
 
 
-def select(query, dsn):
+def select(query, data, dsn):
     try:
         with psycopg2.connect(dsn) as conn:
             with conn.cursor() as cur:
-                cur.execute(query)
+                cur.execute(query, data)
                 return cur.fetchall()
     except Exception as e:
         print(e)
+
+query_pk = """
+SELECT a.attname, format_type(a.atttypid, a.atttypmod) AS data_type
+FROM   pg_index i
+JOIN   pg_attribute a ON a.attrelid = i.indrelid
+                     AND a.attnum = ANY(i.indkey)
+WHERE  i.indrelid = %(table_name)s::regclass
+AND    i.indisprimary"""
+
+data = {'table_name': name}
 
 execute(query, dsn)
 #execute(query_1, dsn)
 #execute(query_3, dsn)
 
-print(select(select_pk, dsn))
+print(select(query_pk, data, dsn))
