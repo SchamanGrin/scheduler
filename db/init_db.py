@@ -244,3 +244,4 @@ class database(object):
         self.dividends_table.create_fk()
 
 
+

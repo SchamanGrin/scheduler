@@ -1,4 +1,5 @@
 import configparser
+import keyring
 import pandas as pd
 
 from pathlib import Path
@@ -17,7 +18,7 @@ class backconfig(object):
 
         self.db_conf_data = {
             'DEFAULT': {'host': 'localhost', 'dbname': 'demo', 'user': 'db_user'},
-            'data_type': {'dbconfig': {'host': str, 'dbname': str, 'user': str, 'password':str}}
+            'data_type': {'dbconfig': {'host': str, 'dbname': str, 'user': str}}
         }
 
         if not self.db_conf_path.exists():
@@ -58,6 +59,7 @@ class backconfig(object):
 
     def _dsn(self, confdata):
         result = ''
+        confdata['password'] = keyring.get_password(confdata['dbname'], confdata['user'])
         for item in confdata.items():
             t = f'{item[0]}={item[1]} '
             result = f'{result} {t}'
