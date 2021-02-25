@@ -14,6 +14,7 @@ class table(object):
         self.query_fields = ''
         self.query_pk = ''
         self.query_fk = ''
+        self.query_insert= ''
 
 
     def create_table(self):
@@ -28,6 +29,9 @@ class table(object):
 
     def create_fk(self):
         return self.query_builder.create_execute(self.query_fk)
+
+    def insert(self, data):
+        return self.query_builder.create_execute(self.query_insert, data)
 
 
 
@@ -44,7 +48,9 @@ class stock(table):
                                ADD IF NOT EXISTS ticker char(5),
                                ADD IF NOT EXISTS start_date date NOT NULL,
                                ADD IF NOT EXISTS stock_type varchar NOT NULL,
-                               ADD IF NOT EXISTS domicile varchar NOT NULL"""
+                               ADD IF NOT EXISTS domicile varchar NOT NULL,
+                               ADD IF NOT EXISTS currency varchar NOT NULL
+                               """
 
         self.query_pk = """DO $$
                            BEGIN
@@ -63,6 +69,11 @@ class stock(table):
                                 ALTER TABLE stock
                                     ADD CONSTRAINT stock_type_name_stock_stock_type_fk
                                     FOREIGN KEY (stock_type) REFERENCES stock_type(name);
+                            END IF;
+                            IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'currency_short_name_stock_currency_fk') THEN
+                                ALTER TABLE stock
+                                    ADD CONSTRAINT currency_short_name_stock_currency_fk
+                                    FOREIGN KEY (currency) REFERENCES currency(short_name);
                             END IF;
                         END;
                         $$;
@@ -87,8 +98,7 @@ class quotes(table):
                             ADD IF NOT EXISTS timestamp timestamp,
                             ADD IF NOT EXISTS open money,
                             ADD IF NOT EXISTS close money,
-                            ADD IF NOT EXISTS volume int,
-                            ADD IF NOT EXISTS currency varchar
+                            ADD IF NOT EXISTS volume int
                             """
 
         self.query_pk = """
@@ -110,12 +120,7 @@ class quotes(table):
                                 ALTER TABLE quotes
                                     ADD CONSTRAINT stock_ticker_quotes_ticker_fk
                                     FOREIGN KEY (ticker) REFERENCES stock(ticker);
-                            END IF;
-                            IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'currency_short_name_quotes_currency_fk') THEN
-                                ALTER TABLE quotes
-                                    ADD CONSTRAINT currency_short_name_quotes_currency_fk
-                                    FOREIGN KEY (currency) REFERENCES currency(short_name);
-                            END IF;                            
+                            END IF;                          
                         END;
                         $$;
                         """
@@ -135,8 +140,7 @@ class dividends(table):
                             ALTER TABLE IF EXISTS dividends
                             ADD IF NOT EXISTS ticker char(5),
                             ADD IF NOT EXISTS timestamp timestamp,
-                            ADD IF NOT EXISTS value money,
-                            ADD IF NOT EXISTS currency varchar
+                            ADD IF NOT EXISTS value money
                             """
         self.query_pk = """
                         DO $$
@@ -156,15 +160,13 @@ class dividends(table):
                                 ALTER TABLE dividends
                                     ADD CONSTRAINT stock_ticker_dividends_ticker_fk
                                     FOREIGN KEY (ticker) REFERENCES stock(ticker);
-                            END IF;
-                            IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'currency_short_name_dividends_currency_fk') THEN
-                                ALTER TABLE dividends
-                                    ADD CONSTRAINT currency_short_name_dividends_currency_fk
-                                    FOREIGN KEY (currency) REFERENCES currency(short_name);
-                            END IF;                            
+                            END IF;                         
                         END;
                         $$;
                         """
+
+        self.query_insert = """INSERT INTO dividends (ticker, timestamp, value) VALUES (%(ticker)s, %(timestamp)s, %(values)s)"""
+
         self.create_table()
         self.create_fields()
         self.create_pk()
@@ -195,6 +197,9 @@ class stock_type(table):
                         END;
                         $$;
                         """
+
+        self.query_insert = """INSERT INTO stock_type VALUES (%(name)s, %(description))"""
+
         self.create_table()
         self.create_fields()
         self.create_pk()
@@ -224,9 +229,17 @@ class currency(table):
                         END;
                         $$;
                         """
+        self.query_insert = """INSERT INTO currency (short_name, long_name, country) VALUES (%(short_name)s, %(long_name)s, %(country)s)"""
+
         self.create_table()
         self.create_fields()
         self.create_pk()
+
+
+
+
+
+
 
 
 class database(object):
@@ -242,6 +255,9 @@ class database(object):
         self.stock_table.create_fk()
         self.quotes_table.create_fk()
         self.dividends_table.create_fk()
+
+
+
 
 
 

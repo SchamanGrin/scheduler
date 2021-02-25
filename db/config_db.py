@@ -59,7 +59,14 @@ class backconfig(object):
 
     def _dsn(self, confdata):
         result = ''
-        confdata['password'] = keyring.get_password(confdata['dbname'], confdata['user'])
+        try:
+            #Вытаскиваем из хранилища ключ на основе информаии о базе и пользователе. Ключ нкладется в хранилище
+            #через командную строку
+            confdata['password'] = keyring.get_password(confdata['dbname'], confdata['user'])
+        except Exception as e:
+            print(f'Error {e}')
+
+
         for item in confdata.items():
             t = f'{item[0]}={item[1]} '
             result = f'{result} {t}'
